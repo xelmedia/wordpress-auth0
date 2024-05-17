@@ -40,6 +40,7 @@
         "psr/cache": "^3.0"
     },
     "require-dev": {
+        "buggregator/trap": "^1",
         "ergebnis/composer-normalize": "^2",
         "friendsofphp/php-cs-fixer": "^3",
         "hyperf/event": "^2",
