@@ -6,7 +6,7 @@
  * Description:       Supercharge your WordPress website with Auth0. Improve account security, add support for multifactor, enable social, passwordless and enterprise connections, and much more.
  * Version:           5.2.0
  * Requires at least: 6.0
- * Tested up to:      6.4
+ * Tested up to:      6.5.3
  * Stable tag:        5.2.0
  * Requires PHP:      8.1
  * Author:            Auth0
