@@ -171,6 +171,26 @@ final class Authentication extends Base
     }
 
     /**
+     * Fires when 'auth_cookie_expiration' is triggered by WordPress.
+     *
+     * @link https://developer.wordpress.org/reference/hooks/auth_cookie_expiration/
+     *
+     * @param int  $length
+     * @param int  $user_id
+     * @param bool $remember
+     */
+    public function onAuthCookieAssignExpiration(int $length, int $user_id, bool $remember): int
+    {
+        if ($remember) {
+            $ttl = $this->getPlugin()->getOptionInteger('cookies', 'ttl') ?? 0;
+
+            return $ttl > 0 ? $ttl : $length;
+        }
+
+        return $length;
+    }
+
+    /**
      * Fires when 'auth_cookie_bad_hash' is triggered by WordPress.
      *
      * @link https://developer.wordpress.org/reference/hooks/auth_cookie_bad_hash/
@@ -238,26 +258,6 @@ final class Authentication extends Base
 
         $this->getSdk()
             ->clear();
-    }
-
-    /**
-     * Fires when 'auth_cookie_expiration' is triggered by WordPress.
-     *
-     * @link https://developer.wordpress.org/reference/hooks/auth_cookie_expiration/
-     *
-     * @param int  $length
-     * @param int  $user_id
-     * @param bool $remember
-     */
-    public function onAuthCookieAssignExpiration(int $length, int $user_id, bool $remember): int
-    {
-        if ($remember) {
-            $ttl =  $this->getPlugin()->getOptionInteger('cookies', 'ttl') ?? 0;
-            $ttl = $ttl > 0 ? $ttl : $length;
-            return $ttl;
-        }
-
-        return $length;
     }
 
     /**
@@ -429,24 +429,6 @@ final class Authentication extends Base
         }
     }
 
-    public function onShutdown(): void
-    {
-        if (! is_user_logged_in() || wp_is_json_request() || wp_is_rest_endpoint()) {
-            return;
-        }
-
-        if ('false' !== $this->getPlugin()->getOption('authentication', 'rolling_sessions')) {
-            $store = $this->getSdk()->configuration()->getSessionStorage();
-
-            /**
-             * @var CookieStore $store
-             */
-            $store->setState(true);
-
-            wp_set_auth_cookie(get_current_user_id(), true);
-        }
-    }
-
     public function onLogin(): void
     {
         if (! $this->getPlugin()->isEnabled()) {
@@ -468,7 +450,7 @@ final class Authentication extends Base
             // Ignore invalid requests; continue as normal.
         }
 
-        if (isset($_GET['auth0_bcl']) && isset($_POST['logout_token'])) {
+        if (isset($_GET['auth0_bcl'], $_POST['logout_token'])) {
             $incomingBackchannelLogoutRequest = Sanitize::string($_GET['auth0_bcl']);
             $backchannelLogoutSecret = $this->getPlugin()->getOptionString('authentication', 'backchannel_logout_secret');
 
@@ -578,6 +560,24 @@ final class Authentication extends Base
     {
         // Block registration attempts from the API?
         exit;
+    }
+
+    public function onShutdown(): void
+    {
+        if (! is_user_logged_in() || wp_is_json_request() || wp_is_rest_endpoint()) {
+            return;
+        }
+
+        if ('false' !== $this->getPlugin()->getOption('authentication', 'rolling_sessions')) {
+            $store = $this->getSdk()->configuration()->getSessionStorage();
+
+            /**
+             * @var CookieStore $store
+             */
+            $store->setState(true);
+
+            wp_set_auth_cookie(get_current_user_id(), true);
+        }
     }
 
     public function onUpdatedUser($userId, $previousUserData = null): void

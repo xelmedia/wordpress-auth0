@@ -15,7 +15,7 @@ final class Factory
         static $instance = [];
 
         /** @var Client[] $instance */
-        if (! $responseFactory instanceof \Psr\Http\Message\ResponseFactoryInterface) {
+        if (! $responseFactory instanceof ResponseFactoryInterface) {
             $responseFactory = self::getResponseFactory();
         }
 

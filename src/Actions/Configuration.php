@@ -433,14 +433,9 @@ final class Configuration extends Base
         ],
         self::CONST_PAGE_TOOLS => [
             'title' => 'Auth0 — Tools',
-            'sections' => []
+            'sections' => [],
         ],
     ];
-
-    /**
-     * @var string
-     */
-    public const CONST_PAGE_TOOLS = 'auth0_tools';
 
     /**
      * @var string
@@ -456,6 +451,11 @@ final class Configuration extends Base
      * @var string
      */
     public const CONST_PAGE_SYNC = 'auth0_sync';
+
+    /**
+     * @var string
+     */
+    public const CONST_PAGE_TOOLS = 'auth0_tools';
 
     /**
      * @var string
@@ -723,11 +723,37 @@ final class Configuration extends Base
             'fallback_secret' => Sanitize::string((string) ($input['fallback_secret'] ?? '')) ?? '',
         ];
 
-        if ($sanitized['fallback_secret'] === '') {
+        if ('' === $sanitized['fallback_secret']) {
             $sanitized['fallback_secret'] = bin2hex(random_bytes(64));
         }
 
         set_site_transient('auth0_updated_fallback', true, 60);
+
+        return array_filter($sanitized, static fn ($value): bool => '' !== $value);
+    }
+
+    /**
+     * @param null|array<null|bool|int|string> $input
+     *
+     * @return null|array<mixed>
+     */
+    public function onUpdateBackchannelLogout(?array $input): ?array
+    {
+        if (null === $input) {
+            return null;
+        }
+
+        $sanitized = [
+            'enabled' => Sanitize::string((string) ($input['secret'] ?? '')) ?? '',
+            'secret' => Sanitize::string((string) ($input['secret'] ?? '')) ?? '',
+            'ttl' => Sanitize::integer((string) ($input['ttl'] ?? 0), 2_592_000, 0) ?? 0,
+        ];
+
+        if ('' === $sanitized['secret']) {
+            $sanitized['secret'] = bin2hex(random_bytes(64));
+        }
+
+        set_site_transient('auth0_updated_backchannel', true, 60);
 
         return array_filter($sanitized, static fn ($value): bool => '' !== $value);
     }
@@ -981,43 +1007,6 @@ final class Configuration extends Base
         return array_filter($sanitized, static fn ($value): bool => '' !== $value);
     }
 
-    /**
-     * @param null|array<null|bool|int|string> $input
-     *
-     * @return null|array<mixed>
-     */
-    public function onUpdateBackchannelLogout(?array $input): ?array
-    {
-        if (null === $input) {
-            return null;
-        }
-
-        $sanitized = [
-            'enabled' => Sanitize::string((string) ($input['secret'] ?? '')) ?? '',
-            'secret' => Sanitize::string((string) ($input['secret'] ?? '')) ?? '',
-            'ttl' => Sanitize::integer((string) ($input['ttl'] ?? 0), 2_592_000, 0) ?? 0,
-        ];
-
-        if ($sanitized['secret'] === '') {
-            $sanitized['secret'] = bin2hex(random_bytes(64));
-        }
-
-        set_site_transient('auth0_updated_backchannel', true, 60);
-
-        return array_filter($sanitized, static fn ($value): bool => '' !== $value);
-    }
-
-    public function renderToolsConfiguration(): void
-    {
-        Render::pageBegin(self::PAGES[self::CONST_PAGE_TOOLS]['title']);
-
-        // settings_fields(self::CONST_PAGE_ADVANCED);
-        // do_settings_sections(self::CONST_PAGE_ADVANCED);
-        // submit_button();
-
-        Render::pageEnd();
-    }
-
     public function renderAdvancedConfiguration(): void
     {
         Render::pageBegin(self::PAGES[self::CONST_PAGE_ADVANCED]['title']);
@@ -1051,6 +1040,17 @@ final class Configuration extends Base
         Render::pageEnd();
     }
 
+    public function renderToolsConfiguration(): void
+    {
+        Render::pageBegin(self::PAGES[self::CONST_PAGE_TOOLS]['title']);
+
+        // settings_fields(self::CONST_PAGE_ADVANCED);
+        // do_settings_sections(self::CONST_PAGE_ADVANCED);
+        // submit_button();
+
+        Render::pageEnd();
+    }
+
     private function getOptionDescription(string $context): string
     {
         if ('cookie_domain' === $context) {
@@ -1066,9 +1066,8 @@ final class Configuration extends Base
 
                     if (! $updated) {
                         return 'Save your changes to view your fallback URI. Erase the secret to generate a new one.';
-                    } else {
-                        delete_site_transient('auth0_updated_fallback');
                     }
+                    delete_site_transient('auth0_updated_fallback');
 
                     $fallbackSecret = $this->getPlugin()->getOption('authentication', 'fallback_secret');
 
@@ -1088,9 +1087,8 @@ final class Configuration extends Base
 
                     if (! $updated) {
                         return 'Save your changes to view your Back-Channel Logout URI. Erase the secret to generate a new one.';
-                    } else {
-                        delete_site_transient('auth0_updated_backchannel');
                     }
+                    delete_site_transient('auth0_updated_backchannel');
 
                     $backchannelLogoutSecret = $this->getPlugin()->getOption('backchannel_logout', 'secret');
 

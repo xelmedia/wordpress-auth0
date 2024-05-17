@@ -49,7 +49,7 @@ final class WpObjectCachePool implements CacheItemPoolInterface
         foreach (array_keys($this->deferred) as $singleDeferred) {
             $item = $this->wpGetItemDeferred((string) $singleDeferred);
 
-            if ($item instanceof \Psr\Cache\CacheItemInterface && ! $this->save($item)) {
+            if ($item instanceof CacheItemInterface && ! $this->save($item)) {
                 $success = false;
             }
         }
