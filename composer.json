@@ -40,6 +40,7 @@
         "psr/cache": "^3.0"
     },
     "require-dev": {
+        "humbug/php-scoper": "^0.18",
         "buggregator/trap": "^1",
         "ergebnis/composer-normalize": "^2",
         "friendsofphp/php-cs-fixer": "^3",
@@ -94,7 +95,7 @@
         }
     },
     "scripts": {
-        "package": "mv composer.local.json composer.local.old && composer install --no-dev --optimize-autoloader --no-ansi --no-interaction --no-plugins --no-progress --no-scripts && mv composer.local.old composer.local.json",
+        "package": "./build.sh",
         "pest": "@php vendor/bin/pest --order-by random --fail-on-risky --parallel --no-progress",
         "pest:coverage": "@php vendor/bin/pest --order-by random --fail-on-risky --coverage --parallel --no-progress",
         "pest:debug": "@php vendor/bin/pest --log-events-verbose-text pest.log --display-errors --fail-on-risky --no-progress",
