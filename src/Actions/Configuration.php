@@ -1135,8 +1135,8 @@ final class Configuration extends Base
             $response[$roleId] = (string) $role['name'];
         }
 
-        return array_reverse($response, true);
-
         /** @var string[] $response */
+
+        return array_reverse($response, true);
     }
 }
