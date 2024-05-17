@@ -24,6 +24,12 @@ final class Authentication extends Base
      */
     protected array $registry = [
         'init' => 'onInit',
+        // 'rest_api_init' => 'onInit',
+        // 'admin_init' => 'onInit',
+        // 'shutdown' => 'onShutdown',
+        'send_headers' => 'onShutdown',
+
+        'auth_cookie_expiration' => ['onAuthCookieAssignExpiration', 3],
         'auth_cookie_malformed' => ['onAuthCookieMalformed', 2],
         'auth_cookie_expired' => 'onAuthCookieExpired',
         'auth_cookie_bad_username' => 'onAuthCookieBadUsername',
@@ -235,6 +241,26 @@ final class Authentication extends Base
     }
 
     /**
+     * Fires when 'auth_cookie_expiration' is triggered by WordPress.
+     *
+     * @link https://developer.wordpress.org/reference/hooks/auth_cookie_expiration/
+     *
+     * @param int  $length
+     * @param int  $user_id
+     * @param bool $remember
+     */
+    public function onAuthCookieAssignExpiration(int $length, int $user_id, bool $remember): int
+    {
+        if ($remember) {
+            $ttl =  $this->getPlugin()->getOptionInteger('cookies', 'ttl') ?? 0;
+            $ttl = $ttl > 0 ? $ttl : $length;
+            return $ttl;
+        }
+
+        return $length;
+    }
+
+    /**
      * Note that this ONLY fires for users created via WordPress' UI, like the "Add New" button from the Admin -> Users page.
      *
      * @param mixed      $userId
@@ -259,7 +285,6 @@ final class Authentication extends Base
         ], JSON_THROW_ON_ERROR);
         $checksum = hash('sha256', $payload);
 
-        // TODO: Optimize this by creating an InsertIgnoreRow() method with a custom query.
         $dupe = $database->selectRow('id', $table, 'WHERE `hashsum` = "%s";', [$checksum]);
 
         if (! $dupe) {
@@ -301,7 +326,6 @@ final class Authentication extends Base
                 ], JSON_THROW_ON_ERROR);
                 $checksum = hash('sha256', $payload);
 
-                // TODO: Optimize this by creating an InsertIgnoreRow() method with a custom query.
                 $dupe = $database->selectRow('id', $table, 'WHERE `hashsum` = "%s";', [$checksum]);
 
                 if (! $dupe) {
@@ -335,8 +359,17 @@ final class Authentication extends Base
             return;
         }
 
+        if (! is_user_logged_in()) {
+            return;
+        }
+
         $session = $this->getSdk()->getCredentials();
         $expired = $session?->accessTokenExpired ?? true;
+
+        if (! $expired && (wp_is_json_request() || wp_is_rest_endpoint())) {
+            return;
+        }
+
         $wordpress = wp_get_current_user();
 
         // Paired sessions enforced
@@ -394,6 +427,13 @@ final class Authentication extends Base
                 }
             }
         }
+    }
+
+    public function onShutdown(): void
+    {
+        if (! is_user_logged_in() || wp_is_json_request() || wp_is_rest_endpoint()) {
+            return;
+        }
 
         if ('false' !== $this->getPlugin()->getOption('authentication', 'rolling_sessions')) {
             $store = $this->getSdk()->configuration()->getSessionStorage();
@@ -402,7 +442,8 @@ final class Authentication extends Base
              * @var CookieStore $store
              */
             $store->setState(true);
-            wp_set_auth_cookie($wordpress->ID, true);
+
+            wp_set_auth_cookie(get_current_user_id(), true);
         }
     }
 
@@ -467,7 +508,13 @@ final class Authentication extends Base
                     );
             } catch (Throwable $throwable) {
                 // Exchange failed; throw an error
-                exit($throwable->getMessage());
+                try {
+                    error_log($throwable->getMessage());
+                } catch (Throwable) {
+                }
+
+                wp_redirect('/');
+                exit;
             }
 
             $session = $this->getSdk()
@@ -503,8 +550,6 @@ final class Authentication extends Base
                     wp_redirect('/');
                     exit;
                 }
-
-                // TODO: Display an error here. No matches and could not create account, or account creating was disabled.
             }
         }
 
@@ -554,7 +599,6 @@ final class Authentication extends Base
         ], JSON_THROW_ON_ERROR);
         $checksum = hash('sha256', $payload);
 
-        // TODO: Optimize this by creating an InsertIgnoreRow() method with a custom query.
         $dupe = $database->selectRow('id', $table, 'WHERE `hashsum` = "%s";', [$checksum]);
 
         if (! $dupe) {

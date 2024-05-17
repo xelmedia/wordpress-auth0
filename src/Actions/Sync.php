@@ -103,7 +103,6 @@ final class Sync extends Base
 
                     if (null !== $response) {
                         // Trigger a password change email to let them set their password
-                        // TODO: This needs to be optional
                         $this->getSdk()->management()->tickets()->createPasswordChange([
                             'user_id' => $response['user_id'],
                         ]);
