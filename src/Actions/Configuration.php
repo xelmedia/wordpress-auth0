@@ -1057,44 +1057,38 @@ final class Configuration extends Base
             return sprintf('Must include origin domain of <code>`%s`</code>', Sanitize::domain(site_url()) ?? '');
         }
 
-        if ('fallback_secret' === $context) {
-            if ($this->isPluginReady()) {
-                $fallbackAllowed = $this->getPlugin()->getOption('authentication', 'allow_fallback', 0);
+        if ('fallback_secret' === $context && $this->isPluginReady()) {
+            $fallbackAllowed = $this->getPlugin()->getOption('authentication', 'allow_fallback', 0);
+            if (1 === $fallbackAllowed) {
+                $updated = get_site_transient('auth0_updated_fallback');
 
-                if (1 === $fallbackAllowed) {
-                    $updated = get_site_transient('auth0_updated_fallback');
+                if (! $updated) {
+                    return 'Save your changes to view your fallback URI. Erase the secret to generate a new one.';
+                }
+                delete_site_transient('auth0_updated_fallback');
 
-                    if (! $updated) {
-                        return 'Save your changes to view your fallback URI. Erase the secret to generate a new one.';
-                    }
-                    delete_site_transient('auth0_updated_fallback');
+                $fallbackSecret = $this->getPlugin()->getOption('authentication', 'fallback_secret');
 
-                    $fallbackSecret = $this->getPlugin()->getOption('authentication', 'fallback_secret');
-
-                    if (null !== $fallbackSecret) {
-                        return sprintf('Your fallback URI is <code>`%s?auth0_fb=%s`</code>', wp_login_url(), $fallbackSecret);
-                    }
+                if (null !== $fallbackSecret) {
+                    return sprintf('Your fallback URI is <code>`%s?auth0_fb=%s`</code>', wp_login_url(), $fallbackSecret);
                 }
             }
         }
 
-        if ('backchannel_logout_secret' === $context) {
-            if ($this->isPluginReady()) {
-                $backchannelLogoutEnabled = $this->getPlugin()->getOption('backchannel_logout', 'enabled', 0);
+        if ('backchannel_logout_secret' === $context && $this->isPluginReady()) {
+            $backchannelLogoutEnabled = $this->getPlugin()->getOption('backchannel_logout', 'enabled', 0);
+            if (0 !== $backchannelLogoutEnabled) {
+                $updated = get_site_transient('auth0_updated_backchannel');
 
-                if (0 !== $backchannelLogoutEnabled) {
-                    $updated = get_site_transient('auth0_updated_backchannel');
+                if (! $updated) {
+                    return 'Save your changes to view your Back-Channel Logout URI. Erase the secret to generate a new one.';
+                }
+                delete_site_transient('auth0_updated_backchannel');
 
-                    if (! $updated) {
-                        return 'Save your changes to view your Back-Channel Logout URI. Erase the secret to generate a new one.';
-                    }
-                    delete_site_transient('auth0_updated_backchannel');
+                $backchannelLogoutSecret = $this->getPlugin()->getOption('backchannel_logout', 'secret');
 
-                    $backchannelLogoutSecret = $this->getPlugin()->getOption('backchannel_logout', 'secret');
-
-                    if (null !== $backchannelLogoutSecret) {
-                        return sprintf('Your Back-Channel Logout URI is <code>`%s?auth0_bcl=%s`</code>', wp_login_url(), $backchannelLogoutSecret);
-                    }
+                if (null !== $backchannelLogoutSecret) {
+                    return sprintf('Your Back-Channel Logout URI is <code>`%s?auth0_bcl=%s`</code>', wp_login_url(), $backchannelLogoutSecret);
                 }
             }
         }
