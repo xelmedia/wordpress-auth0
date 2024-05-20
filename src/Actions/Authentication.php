@@ -568,7 +568,7 @@ final class Authentication extends Base
             return;
         }
 
-        if ('false' !== $this->getPlugin()->getOption('authentication', 'rolling_sessions')) {
+        if ('false' !== $this->getPlugin()->getOption('sessions', 'rolling_sessions')) {
             $store = $this->getSdk()->configuration()->getSessionStorage();
 
             /**
