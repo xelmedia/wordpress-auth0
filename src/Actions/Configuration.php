@@ -1059,7 +1059,7 @@ final class Configuration extends Base
 
         if ('fallback_secret' === $context && $this->isPluginReady()) {
             $fallbackAllowed = $this->getPlugin()->getOption('authentication', 'allow_fallback', 0);
-            if (1 === $fallbackAllowed) {
+            if ('true' === $fallbackAllowed) {
                 $updated = get_site_transient('auth0_updated_fallback');
 
                 if (! $updated) {
