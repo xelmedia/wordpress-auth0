@@ -31,7 +31,9 @@ if (! defined('ABSPATH')) {
 }
 
 // Load dependencies
-if (file_exists(plugin_dir_path(__FILE__) . '/vendor/autoload.php')) {
+if (file_exists(plugin_dir_path(__FILE__) . '/vendor/scoper-autoload.php')) {
+    require_once plugin_dir_path(__FILE__) . '/vendor/autoload.php';
+} elseif (file_exists(plugin_dir_path(__FILE__) . '/vendor/autoload.php')) {
     require_once plugin_dir_path(__FILE__) . '/vendor/autoload.php';
 }
 

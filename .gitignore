@@ -16,3 +16,6 @@ composer.local.json
 .php-cs-fixer.cache
 composer.local.old
 pest.log
+private-signing-key.pem
+build.zip
+build.zip.sig

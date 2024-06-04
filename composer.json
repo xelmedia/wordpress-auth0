@@ -95,7 +95,7 @@
         }
     },
     "scripts": {
-        "package": "./build.sh",
+        "build": "./build.sh",
         "pest": "@php vendor/bin/pest --order-by random --fail-on-risky --parallel --no-progress",
         "pest:coverage": "@php vendor/bin/pest --order-by random --fail-on-risky --coverage --parallel --no-progress",
         "pest:debug": "@php vendor/bin/pest --log-events-verbose-text pest.log --display-errors --fail-on-risky --no-progress",

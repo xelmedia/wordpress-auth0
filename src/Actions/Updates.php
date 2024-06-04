@@ -16,7 +16,7 @@ final class Updates extends Base
 
     public function doUpdateCheck($plugins)
     {
-        trap($plugins);
+        // trap($plugins);
 
         if (! is_object($plugins)) {
             return $plugins;
@@ -26,12 +26,12 @@ final class Updates extends Base
             $plugins->response = [];
         }
 
-        $plugins->response['auth0/wpAuth0.php'] = (object) [
-            'slug' => 'auth0',
-            'new_version' => '5.9',
-            'url' => 'https://github.com/auth0/wordpress',
-            'package' => 'https://github.com/auth0/wirdoress/archive/0.2.zip',
-        ];
+        // $plugins->response['auth0/wpAuth0.php'] = (object) [
+        //     'slug' => 'auth0',
+        //     'new_version' => '5.9',
+        //     'url' => 'https://github.com/auth0/wordpress',
+        //     'package' => 'https://github.com/auth0/wirdoress/archive/0.2.zip',
+        // ];
 
         return $plugins;
     }

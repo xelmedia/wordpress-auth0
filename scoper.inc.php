@@ -11,7 +11,7 @@ return [
         Finder::create()
             ->files()
             ->ignoreVCS(true)
-            ->notName('/LICENSE|.*\\.md|.*\\.dist|Makefile|composer\\.(json|lock)/')
+            ->notName('/.*\\.dist|Makefile|scoper.inc.php|rector.php|opslevel.yml|build.sh|public-signing-key.pub|composer.json|composer.lock/')
             ->exclude([
                 'doc',
                 'test',
@@ -28,7 +28,8 @@ return [
     ],
 
     'exclude-namespaces' => [
-        '/^Auth0\\\\WordPress\\\/',
+        '/^Auth0\\\\WordPress\\\\/',
+        '/^Auth0\\\\WordPress/',
         '/^Psr\\\/',
     ],
 
