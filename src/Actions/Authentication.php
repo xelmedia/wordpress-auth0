@@ -41,6 +41,7 @@ final class Authentication extends Base
 
         'login_form_logout' => 'onLogout',
         'auth0_logout' => 'onLogout',
+        'auth0_token_exchange_failed' => 'onExchangeFailed',
 
         'before_signup_header' => 'onRegistration',
 
@@ -495,8 +496,8 @@ final class Authentication extends Base
                 } catch (Throwable) {
                 }
 
-                wp_redirect('/');
-                exit;
+                do_action('auth0_token_exchange_failed', $throwable);
+                return;
             }
 
             $session = $this->getSdk()
@@ -546,6 +547,13 @@ final class Authentication extends Base
         }
 
         wp_redirect($this->getSdk()->login());
+        exit;
+    }
+
+    public function onExchangeFailed(Throwable $_)
+    {
+        // Custom hook ('auth0_token_exchange_failed') to register when token exchange fails.
+        wp_redirect('/');
         exit;
     }
 
